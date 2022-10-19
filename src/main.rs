@@ -1,6 +1,7 @@
 
 mod models;
 mod db;
+mod handlers;
 
 
 fn main() {

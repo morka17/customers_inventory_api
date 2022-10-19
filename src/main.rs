@@ -2,6 +2,7 @@
 mod models;
 mod db;
 mod handlers;
+mod routes;
 
 
 fn main() {

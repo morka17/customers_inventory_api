@@ -10,3 +10,8 @@ pub struct Customer {
     pub email: String,
     pub address: String,
 }
+
+
+impl crate::db::DbCollections for Customer {
+    
+}

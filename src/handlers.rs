@@ -1,7 +1,11 @@
 use std::convert::Infallible;
 use warp::{self, http::StatusCode};
 
-use crate::db::Db;
+//use futures::stream::TryStreamExt;
+use futures::stream::TryStreamExt;
+use mongodb::{bson::doc, options::FindOptions};
+
+use crate::db;
 use crate::models::Customer;
 
 /// List Customers
@@ -12,10 +16,19 @@ use crate::models::Customer;
 /// # Arguments
 ///
 /// * `db` - `Db` -> thread safe vector of Customer objects
-pub async fn list_customers(db: Db) -> Result<impl warp::Reply, Infallible> {
-    let customers = db.lock().await;
-    let customers: Vec<Customer> = customers.clone();
-    Ok(warp::reply::json(&customers))
+pub async fn list_customers(db_collection: db::collection<Customer>) -> Result<impl warp::Reply, Infallible> {
+    let collections = db_collection.lock().await;
+    let collections = collections.clone();
+
+    let filter = doc! {};
+    let find_options =  FindOptions::builder().sort(doc!{}).build();
+
+    let cursor =  collections.find(filter, find_options).await.expect("no match");
+
+    let cursor: Vec<Customer> = cursor.try_collect().await.expect("could not parsed"); 
+    
+
+     Ok(warp::reply::json(&cursor))
 }
 
 /// Create Customer
@@ -29,19 +42,29 @@ pub async fn list_customers(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// & `db` - `Db` -> thread safe vector of Customer objects
 pub async fn create_customer(
     new_customer: Customer,
-    db: Db,
+    db_collection: db::collection<Customer>,
 ) -> Result<impl warp::Reply, Infallible> {
-    let mut customers = db.lock().await;
+    let customers = db_collection.lock().await;
 
-    for customer in customers.iter() {
-        if customer.guid == new_customer.guid {
-            return Ok(StatusCode::BAD_REQUEST);
+    let customers = customers.clone();
+
+    
+    let guid = std::rc::Rc::new(new_customer.guid);
+
+
+    let filter = doc!{"guid":  guid};
+    let _find_options = FindOptions::builder().sort(doc! {}).build();
+
+    
+    match customers.find_one(filter, None).await {
+        Ok(_c) => Ok(StatusCode::BAD_REQUEST),
+        Err(_) => {
+            match customers.insert_one(new_customer, None).await{
+                Ok(_) => Ok(StatusCode::CREATED),
+                Err(_) => Ok(StatusCode::BAD_REQUEST)
+            } 
         }
     }
-
-    customers.push(new_customer);
-
-    Ok(StatusCode::CREATED)
 }
 
 

@@ -1,34 +1,46 @@
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use std::fs::File;
-use serde_json::from_reader;
 
-use crate::models::Customer;
+use crate::constants;
 
-pub type Db = Arc<Mutex<Vec<Customer>>>;
+use mongodb::{
+    options::ClientOptions,
+    Client,
+};
 
 
-pub fn init_db() -> Db {
-    let file = File::open("./data/customers.json");
-    match file {
-        Ok(json) => {
-            let customers = from_reader(json).unwrap();
-            Arc::new(Mutex::new(customers))
-        },
-        Err(_) => {
-             match File::create("./data/customers.json"){
-                Ok(f) => {
-                   match  File::open("./data/customers.json"){
-                    Ok(json) => {
-                        let customers = from_reader(json).unwrap();
-                        Arc::new(Mutex::new(customers))
-                    },
-                    Err(err) => println!("Error opening database {}", err)
-                   }
-                },
-                Err(_) => println!("Error creating database")
-            }
-            
-        }
+pub trait DbCollections: Sized{
+    
+}
+
+pub type collection<T: DbCollections> = Arc<Mutex<mongodb::Collection<T>>>; 
+
+#[derive(Debug)]
+pub struct Database<T: DbCollections> {
+    client: mongodb::Client,
+    db: mongodb::Database,
+    collection:  Arc<Mutex<mongodb::Collection<T>>>,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<T: DbCollections> Database<T> {
+    pub async fn init_db<'i>(&mut self, name: &'i str)  {
+        let client_options = ClientOptions::parse(
+            format!("mongodb+srv://{}:{}@cluster0.icaw12w.mongodb.net/?retryWrites=true&w=majority", constants::username, constants::password),
+        )
+        .await.expect("Error connecting to Database");
+    
+        self.client =  Client::with_options(client_options).expect("Couldn't connect to Database");
+        self.db = self.client.database(name);
+    }
+
+    pub fn get_collection<'i>(&mut self, name: &'i str ) -> Arc<Mutex<mongodb::Collection<T>>> {
+      Arc::new(Mutex::new(self.db.collection::<T>(name)))
     }
 }
+
+
+
+// morka qqKi2lrv2mvLQ1Z3
+//
+// morka oso32mMgWsP1kpkQ

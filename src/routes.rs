@@ -71,6 +71,7 @@ fn get_customer(
     .and_then(handlers::get_customer)
 }
 
+
 /// PUT /customers/{guid}
 fn update_customer(
 db: Db

@@ -16,7 +16,19 @@ pub fn init_db() -> Db {
             Arc::new(Mutex::new(customers))
         },
         Err(_) => {
-            Arc::new(Mutex::new(Vec::new()))
+             match File::create("./data/customers.json"){
+                Ok(f) => {
+                   match  File::open("./data/customers.json"){
+                    Ok(json) => {
+                        let customers = from_reader(json).unwrap();
+                        Arc::new(Mutex::new(customers))
+                    },
+                    Err(err) => println!("Error opening database {}", err)
+                   }
+                },
+                Err(_) => println!("Error creating database")
+            }
+            
         }
     }
 }

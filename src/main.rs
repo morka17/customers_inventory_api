@@ -9,8 +9,9 @@ use mongodb::{bson::{doc, Document},  options::ClientOptions, Client};
 
 #[tokio::main]
 async fn main() {
-    let db = db::init_db();
-    let customer_routes = routes::customer_routes(db);
+    let mut db = db::Database::<models::Customer>::init_db("testDB").await;
+
+    let customer_routes = routes::customer_routes(db.collection);
 
     warp::serve(customer_routes)
         .run(([127, 0, 0, 1], 3000))

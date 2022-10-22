@@ -2,7 +2,7 @@ use std::convert::Infallible;
 use warp::{self, Filter};
 
 
-use crate::db::Db;
+use crate::db::collection;
 use crate::handlers;
 use crate::models::Customer;
 
@@ -11,7 +11,7 @@ use crate::models::Customer;
 
 /// All customer routes
 pub fn customer_routes(
-    db: Db,
+    db: collection<Customer>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     get_customer(db.clone())
         .or(update_customer(db.clone()))
@@ -27,14 +27,14 @@ pub fn customer_routes(
 /// This allows the data store to be injected into the route and passed 
 /// along into the handler.
 
-fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error= Infallible> + Clone{
+fn with_db(db: collection<Customer>) -> impl Filter<Extract = (collection<Customer>,), Error= Infallible> + Clone{
     warp::any().map(move || db.clone())
 }
 
 
 /// GET /customers
 fn customers_list(
-    db: Db,
+    db: collection<Customer>,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path("customers")
         .and(warp::get())
@@ -49,7 +49,7 @@ fn json_body() -> impl Filter<Extract = (Customer,), Error = warp::Rejection> + 
 
 
 /// POST /customers
-fn create_customer(db: Db) 
+fn create_customer(db: collection<Customer>) 
 -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone  {
     warp::path("customers")
     .and(warp::post())
@@ -63,7 +63,7 @@ fn create_customer(db: Db)
 
 // GET /customers/{guid}
 fn get_customer(
-    db: Db
+    db: collection<Customer>
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("customers"/ String)
     .and(warp::get())
@@ -74,7 +74,7 @@ fn get_customer(
 
 /// PUT /customers/{guid}
 fn update_customer(
-db: Db
+db: collection<Customer>
 )-> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
 
     warp::path!("customers" / String)
@@ -87,7 +87,7 @@ db: Db
 
 /// DELETE /customers/{guid}
 fn delete_customer(
-    db: Db
+    db: collection<Customer>
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path!("customers" / String)
     .and(warp::delete())

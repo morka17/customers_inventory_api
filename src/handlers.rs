@@ -3,10 +3,7 @@ use warp::{self, http::StatusCode};
 
 //use futures::stream::TryStreamExt;
 use futures::stream::TryStreamExt;
-use mongodb::{
-    bson::doc,
-    options::{FindOptions, UpdateModifications},
-};
+use mongodb::{bson::doc, options::FindOptions};
 
 use crate::db;
 use crate::models::Customer;
@@ -156,7 +153,7 @@ pub async fn delete_customer(
     guid: String,
     db_collection: db::collection<Customer>,
 ) -> Result<impl warp::Reply, Infallible> {
-    let mut customers = db_collection.lock().await;
+    let customers = db_collection.lock().await;
 
     let customers = customers.clone();
 

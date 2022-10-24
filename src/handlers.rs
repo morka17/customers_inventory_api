@@ -52,9 +52,9 @@ pub async fn create_customer(
 
     let customers = customers.clone();
 
-    let guid = std::rc::Rc::new(new_customer.guid);
+    //let guid = std::rc::Rc::new(new_customer.guid);
 
-    let filter = doc! {"guid":  guid};
+    let filter = doc! {"guid":  &new_customer.guid};
     let _find_options = FindOptions::builder().sort(doc! {}).build();
 
     match customers.find_one(filter, None).await {

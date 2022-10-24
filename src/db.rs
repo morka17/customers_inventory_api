@@ -44,8 +44,16 @@ impl Database {
         &mut self,
         name: &'i str,
     ) -> Result<Arc<Mutex<mongodb::Collection<T>>>, mongodb::error::Error> {
-        self.db.lock().await.create_collection(name, None).await?;
+       self.db.lock().await.create_collection(name, None).await?;
 
+        Ok(Arc::new(Mutex::new(
+            self.db.lock().await.collection::<T>(name),
+        )))
+    }
+
+    pub async fn get_collection<'i, T> (&mut self, name: &'i str)  
+    ->  Result<Arc<Mutex<mongodb::Collection<T>>>, mongodb::error::Error> 
+    {   
         Ok(Arc::new(Mutex::new(
             self.db.lock().await.collection::<T>(name),
         )))

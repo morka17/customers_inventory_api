@@ -166,3 +166,50 @@ pub async fn delete_customer(
         Err(_) => Ok(StatusCode::NOT_FOUND),
     }
 }
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[tokio::test]
+    async fn list_customers_works(){
+        let mut db = crate::db::Database::init_db("test1DB").await;
+
+        match  db.get_collection::<crate::models::Customer>("test1_books").await{
+
+            Ok(coll) => {
+                let res = list_customers(coll).await;
+
+                if let Err(err) = res {
+                    panic!("error {}", err)
+                }
+                
+            },
+            Err(err) => panic!("{}", err),
+
+        }
+
+       
+    }
+
+    #[tokio::test]
+    async fn get_customer(){
+        todo!()
+    }
+
+    #[tokio::test]
+    async fn delete_customer(){
+        todo!()
+    }
+
+    #[tokio::test]
+    async fn update_customer(){
+        todo!()
+    }
+
+    #[tokio::test]
+    async fn create_customer(){
+        todo!()
+    }
+}

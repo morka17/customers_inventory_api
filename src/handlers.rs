@@ -1,5 +1,5 @@
 use std::convert::Infallible;
-use warp::{self, http::StatusCode};
+use warp::{self, http::StatusCode, Filter};
 
 //use futures::stream::TryStreamExt;
 use futures::stream::TryStreamExt;
@@ -167,49 +167,73 @@ pub async fn delete_customer(
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[tokio::test]
-    async fn list_customers_works(){
+    async fn list_customers_works() {
         let mut db = crate::db::Database::init_db("test1DB").await;
 
-        match  db.get_collection::<crate::models::Customer>("test1_books").await{
+        let coll = db
+            .get_collection::<crate::models::Customer>("test1_books")
+            .await.expect("failed");
 
-            Ok(coll) => {
-                let res = list_customers(coll).await;
+        // let filter =  warp::path("customers")
+        // .and(warp::get())
+        // .and_then(list_customers(coll));
 
-                if let Err(err) = res {
-                    panic!("error {}", err)
-                }
-                
-            },
-            Err(err) => panic!("{}", err),
-
-        }
-
+        // let res = warp::test::request()
+        // .path("customers")
+        // .and(warp::get())
        
     }
 
     #[tokio::test]
-    async fn get_customer(){
+    async fn get_customer() {
+        let mut db = db::Database::init_db("testdb").await;
+
+        let customers_collection = db
+            .create_collection::<crate::models::Customer>("customers")
+            .await
+            .expect("failed, maybe due to network");
+    
+        
+            // let res = warp::test::request() 
+            // .method("GET")
+            // .path("/customers")
+            // .reply(&list_customers(customers+c))
+            // .await;
+
+            // // 4.
+            // assert_eq!(res.status(), 200, "Should return 200 OK");
+
+            // // 5.
+            // println!("{:#?}", res.body());
+    }
+
+   
+
+    #[tokio::test]
+    async fn delete_customer() {
         todo!()
     }
 
     #[tokio::test]
-    async fn delete_customer(){
+    async fn update_customer() {
         todo!()
     }
 
     #[tokio::test]
-    async fn update_customer(){
+    async fn create_customer() {
         todo!()
     }
 
-    #[tokio::test]
-    async fn create_customer(){
-        todo!()
-    }
+
+   // fn sum() -> impl Filter<Extract = (u32, ), Error >
+
+    // #[tokio::test]
+    // async fn testing_filters(){
+        
+    // }
 }
